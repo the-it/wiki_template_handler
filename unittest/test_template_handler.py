@@ -4,7 +4,7 @@ __author__ = 'eso'
 
 import sys
 sys.path.append('../../')
-from tools.template_handler import TemplateHandler
+from template_handler import TemplateHandler
 
 minimal_vorlage_complex = '''{{minimalvorlage
 |1=test1
