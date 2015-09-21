@@ -24,25 +24,34 @@ class TemplateHandler:
         template_str = re.sub('\A[^\|]*\|', '', template_str)
         while template_str:
             if template_str[0] == '{': #argument is a template itself
-                par_template = re.search('\A\{\{[^}]*\}\}', template_str).group()
-                self.parameters.append({'key': None, 'value': par_template})
-                template_str = re.sub('\A\{\{[^}]*\}\}\|?', '', template_str)
-            elif re.match('\A[^\|]*\=[^\|]*', template_str):   #argument with a key
-                if re.match('\A[^\{\{\|]*\=\{\{.*?\}\}', template_str): #an embedded template with a key
-                    par_template = re.search('\A[^\{\{\|]*\=\{\{.*?\}\}', template_str).group()
-                    par_template = re.split('=', par_template)
-                    self.parameters.append({'key': par_template[0], 'value': par_template[1]})
-                    template_str = re.sub('\A[^\{\{\|]*\=\{\{.*?\}\}\|?', '', template_str)
+                par_template = re.search('\A\{\{.*?\}\}', template_str).group()
+                self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
+                template_str = re.sub('\A\{\{.*?\}\}\|?', '', template_str)
+            elif template_str[0] == '[': #argument is a link in the wiki
+                par_template = re.search('\A\[\[.*?\]\][^|\}]*', template_str).group()
+                self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
+                template_str = re.sub('\A\[\[.*?\]\][^|\}]*\|?', '', template_str)
+            elif re.match('\A[^\|=]*=[^\|]*', template_str):   #argument with a key
+                if re.match('\A[^\{\{\|=]*=\{\{.*?\}\}', template_str): #an embedded template with a key
+                    par_template = re.search('\A[^\{\{\|=]*=\{\{.*?\}\}', template_str).group()
+                    par_template = re.split('[ ]*?=[ ]*?', par_template)
+                    self.parameters.append({'key':self._cut_spaces( par_template[0]), 'value':self._cut_spaces( par_template[1])})
+                    template_str = re.sub('\A[^\{\{\|=]*=\{\{.*?\}\}\|?', '', template_str)
+                elif re.match('\A[^\|=]*=[ ]?\[\[.*?\]\][^|\}]*', template_str):  # an interwikilink
+                    par_template = re.search('\A[^\|=]*=[ ]?\[\[.*?\]\][^|\}]*', template_str).group()
+                    par_template = re.split('[ ]*?=[ ]*?', par_template)
+                    self.parameters.append({'key':self._cut_spaces( par_template[0]), 'value':self._cut_spaces( par_template[1])})
+                    template_str = re.sub('\A[^\|]*=[ ]?\[\[.*?\]\][^|\}]*\|?', '', template_str)
                 else:   # a normal argument with a key
-                    par_template = re.search('\A[^\|]*\=[^\|]*', template_str).group()
+                    par_template = re.search('\A[^\|=]*=[^\|]*', template_str).group()
                     par_template = re.sub('\|', '', par_template)
-                    par_template = re.split('\=', par_template)
-                    self.parameters.append({'key': par_template[0], 'value': par_template[1]})
-                    template_str = re.sub('\A[^\|]*\=[^\|]*\|?', '', template_str)
+                    par_template = re.split('[ ]*?=[ ]*?', par_template)
+                    self.parameters.append({'key':self._cut_spaces( par_template[0]), 'value':self._cut_spaces( par_template[1])})
+                    template_str = re.sub('\A[^\|=]*=[^\|]*\|?', '', template_str)
             else: # an argument without a key
                 par_template = re.search('\A[^\|]*', template_str).group()
                 par_template = re.sub('\|', '', par_template)
-                self.parameters.append({'key': None, 'value': par_template})
+                self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
                 template_str = re.sub('\A[^\|]*\|?', '', template_str)
 
     def get_parameterlist(self):
@@ -71,3 +80,6 @@ class TemplateHandler:
 
     def set_title(self, title):
         self.title = title
+
+    def _cut_spaces(self, raw_string):
+        return re.sub('(\A[ ]|[ ]\Z)', '', raw_string)

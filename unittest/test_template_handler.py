@@ -21,6 +21,10 @@ template_in_template_with_key = '{{minimalvorlage|1={{otherTemplate|other_argume
 
 template_in_template_2 = '{{Sperrsatz|{{Kapitaelchen|Test}}}}'
 
+link_altenate_text_as_value = '{{minimalvorlage|test1|2 = [[link|text for link]] more}}'
+
+link_as_argument = '{{minimalvorlage|test1|[[link|text for link]] more}}'
+
 class TestTemplateHandler(TestCase):
   def test_template_from_page(self):
     handler = TemplateHandler(minimal_vorlage_complex)
@@ -73,3 +77,12 @@ class TestTemplateHandler(TestCase):
       handler = TemplateHandler(minimal_vorlage_simple)
       handler.set_title('testtitle')
       self.assertEqual('{{testtitle|1=test1|2=test2}}', handler.get_str(str_complex=False))
+
+  def test_link_with_text(self):
+      handler = TemplateHandler(link_altenate_text_as_value)
+      self.assertEqual([{'key': None, 'value': 'test1'}, {'key': '2', 'value': '[[link|text for link]] more'}], handler.get_parameterlist())
+
+      del handler
+
+      handler = TemplateHandler(link_as_argument)
+      self.assertEqual([{'key': None, 'value': 'test1'}, {'key': None, 'value': '[[link|text for link]] more'}], handler.get_parameterlist())
