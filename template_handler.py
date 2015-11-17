@@ -2,11 +2,20 @@ __author__ = 'Erik Sommer'
 
 import re
 
+regex_title = '\A[^\|]*'
+regex_no_key = '\A[^\|]*'
+regex_template = '\A\{\{.*?\}\}'
+regex_interwiki = '\A\[\[.*?\]\][^|\}]*'
+regex_key = '\A[^\|=]*=[^\|]*'
+regex_key_embedded_template = '\A[^\{\{\|=]*=\{\{.*?\}\}'
+regex_key_interwikilink = '\A[^\|=]*=[ ]?\[\[.*?\]\][^|\}]*'
+
+
 class TemplateHandler:
     """
 
     """
-    def __init__(self, template_str = ''):
+    def __init__(self, template_str=''):
         '''
 
         :param template_str:
@@ -18,41 +27,25 @@ class TemplateHandler:
             self._process_template_str(template_str)
 
     def _process_template_str(self, template_str):
-        template_str = re.sub('\n', '', template_str)
-        template_str = template_str[2:-2]
-        self.title = re.search('[^\|]*', template_str).group()
-        template_str = re.sub('\A[^\|]*\|', '', template_str)
-        while template_str:
-            if template_str[0] == '{': #argument is a template itself
-                par_template = re.search('\A\{\{.*?\}\}', template_str).group()
-                self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
-                template_str = re.sub('\A\{\{.*?\}\}\|?', '', template_str)
-            elif template_str[0] == '[': #argument is a link in the wiki
-                par_template = re.search('\A\[\[.*?\]\][^|\}]*', template_str).group()
-                self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
-                template_str = re.sub('\A\[\[.*?\]\][^|\}]*\|?', '', template_str)
-            elif re.match('\A[^\|=]*=[^\|]*', template_str):   #argument with a key
-                if re.match('\A[^\{\{\|=]*=\{\{.*?\}\}', template_str): #an embedded template with a key
-                    par_template = re.search('\A[^\{\{\|=]*=\{\{.*?\}\}', template_str).group()
-                    par_template = re.split('[ ]*?=[ ]*?', par_template)
-                    self.parameters.append({'key':self._cut_spaces( par_template[0]), 'value':self._cut_spaces( par_template[1])})
-                    template_str = re.sub('\A[^\{\{\|=]*=\{\{.*?\}\}\|?', '', template_str)
-                elif re.match('\A[^\|=]*=[ ]?\[\[.*?\]\][^|\}]*', template_str):  # an interwikilink
-                    par_template = re.search('\A[^\|=]*=[ ]?\[\[.*?\]\][^|\}]*', template_str).group()
-                    par_template = re.split('[ ]*?=[ ]*?', par_template)
-                    self.parameters.append({'key':self._cut_spaces( par_template[0]), 'value':self._cut_spaces( par_template[1])})
-                    template_str = re.sub('\A[^\|]*=[ ]?\[\[.*?\]\][^|\}]*\|?', '', template_str)
-                else:   # a normal argument with a key
-                    par_template = re.search('\A[^\|=]*=[^\|]*', template_str).group()
-                    par_template = re.sub('\|', '', par_template)
-                    par_template = re.split('[ ]*?=[ ]*?', par_template)
-                    self.parameters.append({'key':self._cut_spaces( par_template[0]), 'value':self._cut_spaces( par_template[1])})
-                    template_str = re.sub('\A[^\|=]*=[^\|]*\|?', '', template_str)
-            else: # an argument without a key
-                par_template = re.search('\A[^\|]*', template_str).group()
-                par_template = re.sub('\|', '', par_template)
-                self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
-                template_str = re.sub('\A[^\|]*\|?', '', template_str)
+        template_str = re.sub('\n', '', template_str)  #get rid of all linebreaks
+        template_str = template_str[2:-2]  #get rid of the surrounding brackets
+        self.title = re.search(regex_title, template_str).group()  #extract the title
+        template_str = re.sub(regex_title +'\|', '', template_str)  #get rid of the title
+
+        while template_str:  #analyse the arguments
+            if template_str[0] == '{':  #argument is a template itself
+                template_str = self._save_argument(regex_template, template_str, False)
+            elif template_str[0] == '[':  #argument is a link in the wiki
+                template_str = self._save_argument(regex_interwiki, template_str, False)
+            elif re.match(regex_key, template_str):  #argument with a key
+                if re.match(regex_key_embedded_template, template_str): #an embedded template with a key
+                    template_str = self._save_argument(regex_key_embedded_template, template_str, True)
+                elif re.match(regex_key_interwikilink, template_str):  # an interwikilink
+                    template_str = self._save_argument(regex_key_interwikilink, template_str, True)
+                else:  # a normal argument with a key
+                    template_str = self._save_argument(regex_key, template_str, True)
+            else:  # an argument without a key
+                template_str = self._save_argument(regex_no_key, template_str, False)
 
     def get_parameterlist(self):
         return self.parameters
@@ -72,7 +65,6 @@ class TemplateHandler:
             ret_str = '\n'
         else:
             ret_str = ''
-        something = ret_str.join(list_for_template)
         return ret_str.join(list_for_template)
 
     def update_parameters(self, dict_parameters):
@@ -81,5 +73,16 @@ class TemplateHandler:
     def set_title(self, title):
         self.title = title
 
-    def _cut_spaces(self, raw_string):
-        return re.sub('(\A[ ]|[ ]\Z)', '', raw_string)
+    @staticmethod
+    def _cut_spaces(raw_string):
+        return re.sub("(\A[ ]|[ ]\Z)", "", raw_string)
+
+    def _save_argument(self, search_pattern, template_str, has_key):
+        par_template = re.search(search_pattern, template_str).group()
+        if has_key is True:
+            par_template = re.split("[ ]*?=[ ]*?", par_template)
+            self.parameters.append({'key': self._cut_spaces(par_template[0]),
+                                    'value': self._cut_spaces(par_template[1])})
+        else:
+            self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
+        return re.sub(search_pattern + "\|?", "", template_str)

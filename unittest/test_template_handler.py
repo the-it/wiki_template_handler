@@ -6,83 +6,98 @@ import sys
 sys.path.append('../../')
 from template_handler import TemplateHandler
 
-minimal_vorlage_complex = '''{{minimalvorlage
-|1=test1
-|2=test2
-}}'''
+test_title = "vorlage"
+test_title_sperr = "Sperrsatz"
+test_title_test = "testtitle"
+test_string_argument_template = "{{otherTemplate|other_argument}}"
+test_string_argument_template2 = "{{Kapitaelchen|Test}}"
+test_string_argument_link = "[[link|text for link]] more"
+test_string_argument_1 = "1=test1"
+test_string_argument_1_no_key = "test1"
+test_string_argument_1_template = "1={{otherTemplate|other_argument}}"
+test_string_argument_2 = "2=test2"
+test_string_argument_2_link = "2 = [[link|text for link]] more"
+test_string_argument_3 = "test3"
+test_string_argument_4 = "4=test4"
+test_string_argument_5 = "5=test5"
+test_string_12_complex = "{{" + test_title + "\n|" + test_string_argument_1 + "\n|" + test_string_argument_2 + "\n}}"
+test_string_12_simple = "{{" + test_title + "|" + test_string_argument_1 + "|" + test_string_argument_2 + "}}"
+test_string_12_no_key = "{{" + test_title + "|" + test_string_argument_1_no_key + "|" + test_string_argument_2 + "}}"
+test_string_345_simple = "{{" + test_title + "|" + test_string_argument_3 + "|" + test_string_argument_4 + "|" + test_string_argument_5 + "}}"
+test_string_12_template = "{{" + test_title + "|" + test_string_argument_template + "|" + test_string_argument_2 + "}}"
+test_string_12_template_no_key = "{{" + test_title + "|" + test_string_argument_1_template + "|" + test_string_argument_2 + "}}"
+test_string_template_2 = "{{" + test_title_sperr + "|" + test_string_argument_template2 + "}}"
+test_string_12_link = "{{" + test_title + "|" + test_string_argument_1_no_key + "|" + test_string_argument_2_link + "}}"
+test_string_12_link_no_key = "{{" + test_title + "|" + test_string_argument_1_no_key + "|" + test_string_argument_link + "}}"
+test_string_12_test_title = "{{" + test_title_test + "|" + test_string_argument_1 + "|" + test_string_argument_2 + "}}"
 
-minimal_vorlage_simple = '{{minimalvorlage|1=test1|2=test2}}'
+test_dict_argument_1 = {"key": '1', "value": 'test1'}
+test_dict_argument_1_no_key = {"key": None, "value": 'test1'}
+test_dict_argument_2 = {"key": '2', "value": 'test2'}
+test_dict_argument_3 = {"key": None, "value": 'test3'}
+test_dict_argument_4 = {"key": '4', "value": 'test4'}
+test_dict_argument_5 = {"key": '5', "value": 'test5'}
+test_dict_template = {'key': 1, 'value': '{{otherTemplate|other_argument}}'}
+test_dict_template_no_key = {'key': None, 'value': '{{otherTemplate|other_argument}}'}
+test_dict_template_2 = {'key': None, 'value': '{{Kapitaelchen|Test}}'}
+test_dict_link = {"key": '2', "value": '[[link|text for link]] more'}
+test_dict_link_no_key = {"key": None, "value": '[[link|text for link]] more'}
 
-without_key = '{{minimalvorlage|test1|2=test2}}'
-
-template_in_template = '{{minimalvorlage|{{otherTemplate|other_argument}}|2=test2}}'
-
-template_in_template_with_key = '{{minimalvorlage|1={{otherTemplate|other_argument}}|2=test2}}'
-
-template_in_template_2 = '{{Sperrsatz|{{Kapitaelchen|Test}}}}'
-
-link_altenate_text_as_value = '{{minimalvorlage|test1|2 = [[link|text for link]] more}}'
-
-link_as_argument = '{{minimalvorlage|test1|[[link|text for link]] more}}'
+test_list_12 = [test_dict_argument_1, test_dict_argument_2]
+test_list_12_no_key = [test_dict_argument_1_no_key, test_dict_argument_2]
+test_list_345 = [test_dict_argument_3, test_dict_argument_4, test_dict_argument_5]
+test_list_template = [test_dict_template_no_key, test_dict_argument_2]
+test_list_template_no_key = [test_dict_template_no_key, test_dict_argument_2]
+test_list_template_2 = [test_dict_template_2]
+test_list_link = [test_dict_argument_1_no_key, test_dict_link]
+test_list_link_no_key = [test_dict_argument_1_no_key, test_dict_link_no_key]
 
 class TestTemplateHandler(TestCase):
-  def test_template_from_page(self):
-    handler = TemplateHandler(minimal_vorlage_complex)
-    self.assertEqual([{'key': '1', 'value': 'test1'}, {'key': '2', 'value': 'test2'}], handler.get_parameterlist())
-    del handler
+    def test_template_from_page(self):
+        handler = TemplateHandler(test_string_12_complex)
+        self.assertEqual(test_list_12, handler.get_parameterlist())
 
-    handler = TemplateHandler(minimal_vorlage_simple)
-    self.assertEqual([{'key': '1', 'value': 'test1'}, {'key': '2', 'value': 'test2'}], handler.get_parameterlist())
-    del handler
+    def test_get_parameter(self):
+        handler = TemplateHandler(test_string_12_complex)
+        self.assertEqual(test_dict_argument_1, handler.get_parameter('1'))
+        self.assertEqual(test_dict_argument_2, handler.get_parameter('2'))
 
-  def test_get_parameter(self):
-      handler = TemplateHandler(minimal_vorlage_simple)
-      self.assertEqual({'key': '1', 'value': 'test1'}, handler.get_parameter('1'))
-      self.assertEqual({'key': '2', 'value': 'test2'}, handler.get_parameter('2'))
+    def test_get_str(self):
+        handler = TemplateHandler()
+        handler.set_title(test_title)
+        handler.update_parameters(test_list_12)
+        self.assertEqual(test_string_12_simple, handler.get_str(str_complex=False))
+        self.assertEqual(test_string_12_complex, handler.get_str(str_complex=True))
 
-  def test_get_str(self):
-      handler = TemplateHandler(minimal_vorlage_simple)
-      self.assertEqual('{{minimalvorlage|1=test1|2=test2}}', handler.get_str(str_complex=False))
-      self.assertEqual('{{minimalvorlage\n|1=test1\n|2=test2\n}}', handler.get_str(str_complex=True))
+    def test_without_key(self):
+        handler = TemplateHandler(test_string_12_no_key)
+        self.assertEqual(test_list_12_no_key, handler.get_parameterlist())
 
-  def test_without_key(self):
-      handler = TemplateHandler(without_key)
-      self.assertEqual('{{minimalvorlage|test1|2=test2}}', handler.get_str(str_complex=False))
+    def test_update_parameters(self):
+        handler = TemplateHandler(test_string_12_simple)
+        self.assertEqual(test_dict_argument_1, handler.get_parameter('1'))
+        self.assertEqual(test_dict_argument_2, handler.get_parameter('2'))
+        handler.update_parameters(test_list_345)
+        self.assertEqual(test_string_345_simple, handler.get_str(str_complex=False))
 
-  def test_update_parameters(self):
-      handler = TemplateHandler(minimal_vorlage_simple)
-      self.assertEqual('{{minimalvorlage|1=test1|2=test2}}', handler.get_str(str_complex=False))
-      handler.update_parameters([{'key': None, 'value': 'test3'},
-                                 {'key': '4', 'value': 'test4'},
-                                 {'key': '5', 'value': 'test5'}])
-      self.assertEqual('{{minimalvorlage|test3|4=test4|5=test5}}', handler.get_str(str_complex=False))
+    def test_template_in_template(self):
+        handler = TemplateHandler(test_string_12_template)
+        self.assertListEqual(test_list_template, handler.get_parameterlist())
+        del handler
 
-  def test_template_in_template(self):
-      handler = TemplateHandler(template_in_template)
-      self.assertListEqual([{'key': None, 'value': '{{otherTemplate|other_argument}}'}, {'key': '2', 'value': 'test2'}],
-                           handler.get_parameterlist())
-      del handler
+        handler = TemplateHandler(test_string_template_2)
+        self.assertListEqual(test_list_template_2, handler.get_parameterlist())
 
-      handler = TemplateHandler(template_in_template_with_key)
-      self.assertListEqual([{'key': '1', 'value': '{{otherTemplate|other_argument}}'}, {'key': '2', 'value': 'test2'}], 
-                           handler.get_parameterlist())
-      self.assertListEqual([{'key': '1', 'value': '{{otherTemplate|other_argument}}'}, {'key': '2', 'value': 'test2'}],
-                           handler.get_parameterlist())
-      del handler
+    def test_set_title(self):
+        handler = TemplateHandler(test_string_12_simple)
+        handler.set_title(test_title_test)
+        self.assertEqual(test_string_12_test_title, handler.get_str(str_complex=False))
 
-      handler = TemplateHandler(template_in_template_2)
-      self.assertListEqual([{'key': None, 'value': '{{Kapitaelchen|Test}}'}], handler.get_parameterlist())
+    def test_link_with_text(self):
+        handler = TemplateHandler(test_string_12_link)
+        self.assertEqual(test_list_link, handler.get_parameterlist())
 
-  def test_set_title(self):
-      handler = TemplateHandler(minimal_vorlage_simple)
-      handler.set_title('testtitle')
-      self.assertEqual('{{testtitle|1=test1|2=test2}}', handler.get_str(str_complex=False))
+        del handler
 
-  def test_link_with_text(self):
-      handler = TemplateHandler(link_altenate_text_as_value)
-      self.assertEqual([{'key': None, 'value': 'test1'}, {'key': '2', 'value': '[[link|text for link]] more'}], handler.get_parameterlist())
-
-      del handler
-
-      handler = TemplateHandler(link_as_argument)
-      self.assertEqual([{'key': None, 'value': 'test1'}, {'key': None, 'value': '[[link|text for link]] more'}], handler.get_parameterlist())
+        handler = TemplateHandler(test_string_12_link_no_key)
+        self.assertEqual(test_list_link_no_key, handler.get_parameterlist())
