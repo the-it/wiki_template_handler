@@ -80,9 +80,9 @@ class TemplateHandler:
     def _save_argument(self, search_pattern, template_str, has_key):
         par_template = re.search(search_pattern, template_str).group()
         if has_key is True:
-            par_template = re.split("[ ]*?=[ ]*?", par_template)
-            self.parameters.append({'key': self._cut_spaces(par_template[0]),
-                                    'value': self._cut_spaces(par_template[1])})
+            par_template = re.search("\A([^\=]*)[ ]?=[ ]?(.*)\Z", par_template)
+            self.parameters.append({'key': self._cut_spaces(par_template.group(1)),
+                                    'value': self._cut_spaces(par_template.group(2))})
         else:
             self.parameters.append({'key': None, 'value': self._cut_spaces(par_template)})
         return re.sub(search_pattern + "\|?", "", template_str)
