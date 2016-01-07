@@ -127,3 +127,50 @@ class TestTemplateHandler(TestCase):
         self.assertEqual(test_list_second_equal, handler.get_parameterlist())
 
 
+    def test_BUG_2016_01_07(self):
+        test_string = "{{Textdaten\n|AUTOR=[[Otokar Březina]]\n|VORIGER=Hände (Březina)/Orte der Harmonie und der Versöhnung\n|NÄCHSTER=Hände (Březina)/Frauen\n|TITEL=*\n|SUBTITEL=\n|HERKUNFT=''[[Hände (Březina)|Hände]],'' S. 57\n|HERAUSGEBER=\n|AUFLAGE= 1. Auflage\n|ENTSTEHUNGSJAHR=1908\n|ERSCHEINUNGSJAHR=1908\n|ERSCHEINUNGSORT=Wien\n|VERLAG=Moriz Frisch\n|ÜBERSETZER=[[Emil Saudek]]\n|ORIGINALTITEL=*\n|ORIGINALHERKUNFT=''Ruce,'' Prag 1901\n|BILD=\n|QUELLE=[[C:Hände (Březina)|Commons]]\n|KURZBESCHREIBUNG=\n|BEARBEITUNGSSTAND=fertig\n|WIKIPEDIA=\n|INDEXSEITE=Hände (Březina)\n}}"
+        handler = TemplateHandler(test_string)
+        list_of_keys = ["AUTOR",
+                        "VORIGER",
+                        "NÄCHSTER",
+                        "TITEL",
+                        "SUBTITEL",
+                        "HERKUNFT",
+                        "HERAUSGEBER",
+                        "AUFLAGE",
+                        "ENTSTEHUNGSJAHR",
+                        "ERSCHEINUNGSJAHR",
+                        "ERSCHEINUNGSORT",
+                        "VERLAG",
+                        "ÜBERSETZER",
+                        "ORIGINALTITEL",
+                        "ORIGINALHERKUNFT",
+                        "BILD",
+                        "QUELLE",
+                        "KURZBESCHREIBUNG",
+                        "BEARBEITUNGSSTAND",
+                        "WIKIPEDIA",
+                        "INDEXSEITE"]
+        list_of_values = ["[[Otokar Březina]]",
+                          "Hände (Březina)/Orte der Harmonie und der Versöhnung",
+                          "Hände (Březina)/Frauen",
+                          "*",
+                          "",
+                          "''[[Hände (Březina)|Hände]],'' S. 57",
+                          "",
+                          "1. Auflage",
+                          "1908",
+                          "1908",
+                          "Wien",
+                          "Moriz Frisch",
+                          "[[Emil Saudek]]",
+                          "*",
+                          "''Ruce,'' Prag 1901",
+                          "",
+                          "[[C:Hände (Březina)|Commons]]",
+                          "",
+                          "fertig",
+                          "",
+                          "Hände (Březina)"]
+        for i in range(len(list_of_keys)):
+            self.assertDictEqual({'value': list_of_values[i], 'key': list_of_keys[i]}, handler.get_parameter(list_of_keys[i]))

@@ -8,7 +8,7 @@ regex_template = '\A\{\{.*?\}\}'
 regex_interwiki = '\A\[\[.*?\]\][^|\}]*'
 regex_key = '\A[^\|=]*=[^\|]*'
 regex_key_embedded_template = '\A[^\{\{\|=]*=\{\{.*?\}\}'
-regex_key_interwikilink = '\A[^\|=]*=[ ]?.*?\[\[.*?\]\][^|\}]*'
+regex_key_interwikilink = '\A[^\|=]*=[ ]?[^|]*?\[\[.*?\]\][^|\}]*'
 
 
 class TemplateHandler:
