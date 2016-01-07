@@ -109,6 +109,15 @@ class TestTemplateHandler(TestCase):
         handler = TemplateHandler(test_string_12_link_no_key)
         self.assertEqual(test_list_link_no_key, handler.get_parameterlist())
 
+        del handler
+
+        test_string_argument_link_new = "HERKUNFT=''[[Hände (Březina)|Hände]],'' S. 57"
+        test_string_12_link_no_key = "{{" + test_title + "|" + test_string_argument_1_no_key + "|" + test_string_argument_link_new + "}}"
+        test_dict_link_no_key = {"key": "HERKUNFT", "value": "''[[Hände (Březina)|Hände]],'' S. 57"}
+        test_list_link_no_key = [test_dict_argument_1_no_key, test_dict_link_no_key]
+        handler = TemplateHandler(test_string_12_link_no_key)
+        self.assertEqual(test_list_link_no_key, handler.get_parameterlist())
+
     def test_second_equal(self):
         test_string_argument_second_equal = "BILD=Der Todesgang des armenischen Volkes.pdf{{!}}page=276"
         test_string_second_equal = "{{" + test_title_test + "|" + test_string_argument_1 + "|" + test_string_argument_second_equal + "}}"
